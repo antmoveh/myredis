@@ -13,21 +13,16 @@ type EchoHandler struct {
 	activeConn sync.Map
 }
 
-func MakeEchoHandler() *EchoHandler {
-	return &EchoHandler{}
-}
-
 type Client struct {
 	Conn net.Conn
 }
 
 func (c *Client) Close() error {
-	// c.Waiting.WaitWithTimeout(10 * time.Second)
-	c.Conn.Close()
+	_ = c.Conn.Close()
 	return nil
 }
 
-func (h *EchoHandler) Handle(ctx context.Context, conn net.Conn) {
+func (h *EchoHandler) Handle(ctx context.Context, conn net.Conn, stopChan <-chan struct{}) {
 
 	client := &Client{
 		Conn: conn,
@@ -47,21 +42,20 @@ func (h *EchoHandler) Handle(ctx context.Context, conn net.Conn) {
 			}
 			return
 		}
-		// client.Waiting.Add(1)
-		//l ogger.Info("sleeping")
 		// time.Sleep(10 * time.Second)
 		b := []byte(msg)
-		conn.Write(b)
-		// client.Waiting.Done()
+		_, _ = conn.Write(b)
 	}
 }
 
 func (h *EchoHandler) Close() error {
-	logrus.Info("handler shuting down...")
-	// TODO: concurrent wait
 	h.activeConn.Range(func(key interface{}, val interface{}) bool {
 		client := key.(*Client)
-		client.Close()
+		err := client.Close()
+		if err != nil {
+			logrus.Info("disconnect client faild: %s", err.Error())
+		}
+		logrus.Info("disconnect redis client...")
 		return true
 	})
 	return nil

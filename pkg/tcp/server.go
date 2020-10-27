@@ -4,13 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"myredis/pkg/configuration"
 	"myredis/pkg/redis/server"
 	"net"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 )
 
 type ListenerServe struct {
@@ -18,6 +14,7 @@ type ListenerServe struct {
 	Port     int
 	StopChan <-chan struct{}
 	Handle   server.Handler
+	Listener net.Listener
 }
 
 func (ls *ListenerServe) InitListenerServe(ip string, port int, stopChan <-chan struct{}, handle server.Handler) {
@@ -28,40 +25,31 @@ func (ls *ListenerServe) InitListenerServe(ip string, port int, stopChan <-chan 
 }
 
 func (ls *ListenerServe) Start() {
-	address := fmt.Sprintf("%s:%d", configuration.BindIpAddress, configuration.BindPort)
+	address := fmt.Sprintf("%s:%d", ls.Ip, ls.Port)
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		logrus.Fatal(fmt.Sprintf("listen err: %v", err))
 	}
-
-	// listen signal
-	stopChan := make(chan struct{})
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
-	go func() {
-		sig := <-sigCh
-		switch sig {
-		case syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
-			logrus.Info("shuting down...")
-			close(stopChan)
-			_ = listener.Close() // listener.Accept() will return err immediately
-			_ = Handle.Close()   // close connections
-		}
-	}()
-
+	ls.Listener = listener
 	// listen port
 	logrus.Info(fmt.Sprintf("bind: %s, start listening...", address))
 	defer func() {
 		_ = listener.Close()
-		_ = handler.Close()
+		_ = ls.Handle.Close()
 	}()
+
+	go ls.Close()
 
 	ctx, _ := context.WithCancel(context.Background())
 	var waitDone sync.WaitGroup
-
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
+			_, isClose := <-ls.StopChan
+			if !isClose {
+				logrus.Info("exit redis server")
+				return
+			}
 			logrus.Error(fmt.Sprintf("accept err: %v", err))
 			continue
 		}
@@ -71,7 +59,20 @@ func (ls *ListenerServe) Start() {
 				waitDone.Done()
 			}()
 			waitDone.Add(1)
-			handler.Handle(ctx, conn, stopChan)
+			ls.Handle.Handle(ctx, conn, ls.StopChan)
 		}()
+	}
+}
+
+func (ls *ListenerServe) Close() {
+	for {
+		select {
+		case <-ls.StopChan:
+			logrus.Info("close tcp connect")
+			_ = ls.Listener.Close()
+			_ = ls.Handle.Close()
+			return
+		default:
+		}
 	}
 }
