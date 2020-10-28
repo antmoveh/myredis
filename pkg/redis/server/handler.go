@@ -5,18 +5,13 @@ import (
 	"context"
 	"github.com/sirupsen/logrus"
 	"io"
-	"myredis/pkg/db"
 	"myredis/pkg/redis/reply"
+	"myredis/pkg/types/scheme"
 	"net"
 	"strconv"
 	"strings"
 	"sync"
 )
-
-type HandlerInterface interface {
-	Handle(ctx context.Context, conn net.Conn, stopChan <-chan struct{})
-	Close() error
-}
 
 var (
 	UnknownErrReplyBytes = []byte("-ERR unknown\r\n")
@@ -24,7 +19,20 @@ var (
 
 type Handler struct {
 	activeConn sync.Map // *client -> placeholder
-	db         db.DB
+	db         scheme.DB
+}
+
+func MakeHandler() *Handler {
+	var db scheme.DB
+	// if config.Properties.Peers != nil &&
+	// 	len(config.Properties.Peers) > 0 {
+	// 	db = cluster.MakeCluster()
+	// } else {
+	// 	db = DBImpl.MakeDB()
+	// }
+	return &Handler{
+		db: db,
+	}
 }
 
 func (h *Handler) closeClient(client *Client) {

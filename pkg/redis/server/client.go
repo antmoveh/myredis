@@ -5,19 +5,9 @@ import (
 	"sync"
 )
 
-type Connection interface {
-	Write([]byte) error
-	// client should keep its subscribing channels
-	SubsChannel(channel string)
-	UnSubsChannel(channel string)
-	SubsCount() int
-	GetChannels() []string
-}
-
 // abstract of active client
 type Client struct {
 	conn net.Conn
-
 	// is sending request in progress
 	uploading bool
 	// multi bulk msg lineCount - 1(first line)
@@ -26,10 +16,8 @@ type Client struct {
 	receivedCount uint32
 	// sent lines, exclude first line
 	args [][]byte
-
 	// lock while server sending response
 	mu sync.Mutex
-
 	// subscribing channels
 	subs map[string]bool
 }

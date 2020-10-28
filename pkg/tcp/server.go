@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"myredis/pkg/redis/server"
+	"myredis/pkg/types/scheme"
 	"net"
 	"sync"
 )
@@ -13,11 +13,11 @@ type ListenerServe struct {
 	Ip       string
 	Port     int
 	StopChan <-chan struct{}
-	Handle   server.HandlerInterface
+	Handle   scheme.ServerHandler
 	Listener net.Listener
 }
 
-func (ls *ListenerServe) InitListenerServe(ip string, port int, stopChan <-chan struct{}, handle server.HandlerInterface) {
+func (ls *ListenerServe) InitListenerServe(ip string, port int, stopChan <-chan struct{}, handle scheme.ServerHandler) {
 	ls.Ip = ip
 	ls.Port = port
 	ls.StopChan = stopChan

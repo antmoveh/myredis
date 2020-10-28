@@ -14,10 +14,10 @@ func main() {
 	stopChan := make(chan struct{})
 
 	// eh := &server.EchoHandler{}
-	handle := &server.Handler{}
+	eh := server.MakeHandler()
 
 	ls := tcp.ListenerServe{}
-	ls.InitListenerServe(configuration.BindIpAddress, configuration.BindPort, stopChan, handle)
+	ls.InitListenerServe(configuration.BindIpAddress, configuration.BindPort, stopChan, eh)
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
