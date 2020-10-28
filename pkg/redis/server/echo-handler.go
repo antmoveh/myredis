@@ -53,7 +53,7 @@ func (h *EchoHandler) Close() error {
 		client := key.(*Client)
 		err := client.Close()
 		if err != nil {
-			logrus.Info("disconnect client faild: %s", err.Error())
+			logrus.Info("disconnect client failed: %s", err.Error())
 		}
 		logrus.Info("disconnect redis client...")
 		return true

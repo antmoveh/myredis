@@ -38,8 +38,6 @@ func (ls *ListenerServe) Start() {
 		_ = ls.Handle.Close()
 	}()
 
-	go ls.Close()
-
 	ctx, _ := context.WithCancel(context.Background())
 	var waitDone sync.WaitGroup
 	for {
@@ -65,14 +63,13 @@ func (ls *ListenerServe) Start() {
 }
 
 func (ls *ListenerServe) Close() {
-	for {
-		select {
-		case <-ls.StopChan:
-			logrus.Info("close tcp connect")
-			_ = ls.Listener.Close()
-			_ = ls.Handle.Close()
-			return
-		default:
-		}
+	err := ls.Listener.Close()
+	if err != nil {
+		logrus.Error(fmt.Sprintf("cancel listener port failed: %s", err.Error()))
 	}
+	err = ls.Handle.Close()
+	if err != nil {
+		logrus.Error(fmt.Sprintf("disconnect client failed: %s", err.Error()))
+	}
+	logrus.Info("cancel listener and disconnect ")
 }
