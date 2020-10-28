@@ -102,7 +102,6 @@ func (client *Client) handleConnectionError(err error) error {
 }
 
 func (client *Client) heartbeat() {
-loop:
 	for {
 		select {
 		case <-client.ticker.C:
@@ -111,7 +110,8 @@ loop:
 				heartbeat: true,
 			}
 		case <-client.ctx.Done():
-			break loop
+			logrus.Info("stop heartbeat...")
+			return
 		}
 	}
 }
