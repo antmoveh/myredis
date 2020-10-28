@@ -13,18 +13,18 @@ type EchoHandler struct {
 	activeConn sync.Map
 }
 
-type Client struct {
+type SimpleClient struct {
 	Conn net.Conn
 }
 
-func (c *Client) Close() error {
+func (c *SimpleClient) Close() error {
 	_ = c.Conn.Close()
 	return nil
 }
 
 func (h *EchoHandler) Handle(ctx context.Context, conn net.Conn, stopChan <-chan struct{}) {
 
-	client := &Client{
+	client := &SimpleClient{
 		Conn: conn,
 	}
 	h.activeConn.Store(client, 1)
@@ -50,7 +50,7 @@ func (h *EchoHandler) Handle(ctx context.Context, conn net.Conn, stopChan <-chan
 
 func (h *EchoHandler) Close() error {
 	h.activeConn.Range(func(key interface{}, val interface{}) bool {
-		client := key.(*Client)
+		client := key.(*SimpleClient)
 		err := client.Close()
 		if err != nil {
 			logrus.Info("disconnect client failed: %s", err.Error())

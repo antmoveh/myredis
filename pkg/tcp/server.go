@@ -13,11 +13,11 @@ type ListenerServe struct {
 	Ip       string
 	Port     int
 	StopChan <-chan struct{}
-	Handle   server.Handler
+	Handle   server.HandlerInterface
 	Listener net.Listener
 }
 
-func (ls *ListenerServe) InitListenerServe(ip string, port int, stopChan <-chan struct{}, handle server.Handler) {
+func (ls *ListenerServe) InitListenerServe(ip string, port int, stopChan <-chan struct{}, handle server.HandlerInterface) {
 	ls.Ip = ip
 	ls.Port = port
 	ls.StopChan = stopChan
