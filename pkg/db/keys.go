@@ -6,6 +6,7 @@ import (
 	"myredis/pkg/types/data/set"
 	"myredis/pkg/types/data/sortedset"
 	"myredis/pkg/types/scheme"
+	"myredis/utils/wildcard"
 	"strconv"
 	"time"
 )
@@ -269,7 +270,7 @@ func PTTL(db *DB, args [][]byte) scheme.Reply {
 	return reply.MakeIntReply(int64(ttl / time.Millisecond))
 }
 
-func Persist(db *DB, args [][]byte) redis.Reply {
+func Persist(db *DB, args [][]byte) scheme.Reply {
 	if len(args) != 1 {
 		return reply.MakeErrReply("ERR wrong number of arguments for 'persist' command")
 	}
@@ -289,7 +290,7 @@ func Persist(db *DB, args [][]byte) redis.Reply {
 	return reply.MakeIntReply(1)
 }
 
-func BGRewriteAOF(db *DB, args [][]byte) redis.Reply {
+func BGRewriteAOF(db *DB, args [][]byte) scheme.Reply {
 	if len(args) != 0 {
 		return reply.MakeErrReply("ERR wrong number of arguments for 'bgrewriteaof' command")
 	}
@@ -297,7 +298,7 @@ func BGRewriteAOF(db *DB, args [][]byte) redis.Reply {
 	return reply.MakeStatusReply("Background append only file rewriting started")
 }
 
-func Keys(db *DB, args [][]byte) redis.Reply {
+func Keys(db *DB, args [][]byte) scheme.Reply {
 	if len(args) != 1 {
 		return reply.MakeErrReply("ERR wrong number of arguments for 'keys' command")
 	}
