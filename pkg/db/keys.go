@@ -2,6 +2,7 @@ package db
 
 import (
 	"myredis/pkg/redis/reply"
+	"myredis/pkg/types/data/dict"
 	"myredis/pkg/types/data/list"
 	"myredis/pkg/types/data/set"
 	"myredis/pkg/types/data/sortedset"

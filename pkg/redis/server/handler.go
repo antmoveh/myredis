@@ -5,6 +5,7 @@ import (
 	"context"
 	"github.com/sirupsen/logrus"
 	"io"
+	"myredis/pkg/db"
 	"myredis/pkg/redis/reply"
 	"myredis/pkg/types/scheme"
 	"net"
@@ -23,15 +24,16 @@ type Handler struct {
 }
 
 func MakeHandler() *Handler {
-	var db scheme.DB
+	var db2 scheme.DB
 	// if config.Properties.Peers != nil &&
 	// 	len(config.Properties.Peers) > 0 {
 	// 	db = cluster.MakeCluster()
 	// } else {
 	// 	db = DBImpl.MakeDB()
 	// }
+	db2 = db.MakeDB()
 	return &Handler{
-		db: db,
+		db: db2,
 	}
 }
 
